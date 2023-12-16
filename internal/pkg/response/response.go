@@ -9,16 +9,16 @@ import (
 type Response struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Data    interface{} `json:"data,omitempty"`
 }
 
 func HandleResponse(ctx *gin.Context, err error, data interface{}) {
 	if err != nil {
-		var e errors.Error
+		var e = new(errors.Error)
 		if errors.As(err, e) {
 			ctx.JSON(200, Response{Code: e.Code(), Message: e.Message()})
 		} else {
-			ctx.JSON(200, Response{Code: errors.InternalError.Code(), Message: err.Error()})
+			ctx.JSON(200, Response{Code: errors.InternalError.Code(), Message: errors.InternalError.Message()})
 		}
 		return
 	}

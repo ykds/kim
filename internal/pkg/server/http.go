@@ -23,7 +23,6 @@ type Server struct {
 func NewHttpServer(cfg HttpServerConfig, logger *log.Logger) *Server {
 	engine := gin.New()
 	engine.Use(gin.RecoveryWithWriter(logger.GetOut()), gin.LoggerWithWriter(logger.GetOut()))
-	gin.SetMode(gin.ReleaseMode)
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
 		Handler: engine,

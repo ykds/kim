@@ -86,9 +86,8 @@ func randStr() string {
 }
 
 func hashPassword(password string, salt string) string {
-	hash := sha256.New()
-	hash.Write([]byte(password + salt))
-	return string(hash.Sum(nil))
+	hash := sha256.Sum256([]byte(password + salt))
+	return fmt.Sprintf("%x", hash)
 }
 
 func comparePassword(pwd1 string, pwd2 string, salt string) bool {
