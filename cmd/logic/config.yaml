@@ -1,0 +1,23 @@
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: zura123456
+  database: kim_logic
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  db: 0
+
+log:
+  lumberjack:
+    filename: ./logs/err.log
+    max_age: 7
+    max_size: 10
+    max_backups: 5
+    compress: false
+
+http_server:
+  host: 127.0.0.1
+  port: 8000
