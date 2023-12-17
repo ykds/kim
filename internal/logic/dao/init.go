@@ -3,11 +3,13 @@ package dao
 import "kim/internal/logic/global"
 
 var tables = []interface{}{
-	User{},
+	User{}, FriendApplication{}, Friend{},
 }
 
 type Dao struct {
-	UserDao *UserDao
+	UserDao              *UserDao
+	FriendApplicationDao *FriendApplicationDao
+	FriendDao            *FriendDao
 }
 
 func InitDao() *Dao {
@@ -16,6 +18,8 @@ func InitDao() *Dao {
 		panic(err)
 	}
 	return &Dao{
-		UserDao: NewUserDao(),
+		UserDao:              NewUserDao(),
+		FriendApplicationDao: NewFriendApplicationDao(),
+		FriendDao:            NewFriendDao(),
 	}
 }

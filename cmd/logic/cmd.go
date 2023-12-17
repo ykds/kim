@@ -5,6 +5,7 @@ import (
 	"kim/internal/logic/api"
 	"kim/internal/logic/global"
 	"kim/internal/pkg/log"
+	"kim/internal/pkg/mq"
 	"kim/internal/pkg/mysql"
 	"kim/internal/pkg/redis"
 	"kim/internal/pkg/server"
@@ -18,6 +19,8 @@ func main() {
 	global.Database = mysql.InitMysql(global.Conf.Mysql)
 	global.Redis = redis.NewRedis(global.Conf.Redis)
 	global.Logger = log.InitLogger(global.Conf.Log)
+	global.RabbitMQ = mq.NewRabbitMQClient(global.Conf.RabbitMQ)
+	global.InitMQ()
 
 	httpServer := server.NewHttpServer(global.Conf.HttpServer, global.Logger)
 	httpServer.RegisterRouter(api.InitRouter)

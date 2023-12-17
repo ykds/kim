@@ -17,4 +17,5 @@ func InitRouter(r *gin.Engine) {
 	InitApi()
 
 	registerUserRouter(r)
+	registerFriendRouter(r)
 }

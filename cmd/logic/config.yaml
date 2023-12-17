@@ -21,3 +21,10 @@ log:
 http_server:
   host: 127.0.0.1
   port: 8000
+
+rabbitmq:
+  user: guest
+  password: guest
+  host: 127.0.0.1
+  port: 5672
+  vhost: "/"

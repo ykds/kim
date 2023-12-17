@@ -2,11 +2,10 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"kim/internal/logic/errcode"
 	"kim/internal/logic/global"
+	"kim/internal/logic/middleware"
 	"kim/internal/logic/service"
 	"kim/internal/pkg/errors"
-	"kim/internal/pkg/jwt"
 	"kim/internal/pkg/response"
 )
 
@@ -54,17 +53,8 @@ func Logout(ctx *gin.Context) {
 		response.LogResponse(global.Logger, err)
 		response.HandleResponse(ctx, err, resp)
 	}()
-	token := ctx.GetHeader(global.Token)
-	if token == "" {
-		err = errors.Unauthorized
-		return
-	}
-	userId, err := jwt.ParseToken(token)
-	if err != nil {
-		err = errcode.InvalidTokenErr
-		return
-	}
-	req.UserId = userId
+	userId, _ := ctx.Get(global.UserIdKey)
+	req.UserId = userId.(uint)
 	resp, err = services.UserService.Logout(req)
 }
 
@@ -73,6 +63,6 @@ func registerUserRouter(r *gin.Engine) {
 	{
 		user.POST("/register", Register)
 		user.POST("/login", Login)
-		user.POST("/logout", Logout)
+		user.POST("/logout", middleware.Auth(), Logout)
 	}
 }

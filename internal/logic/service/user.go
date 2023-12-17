@@ -37,6 +37,11 @@ type LogoutReq struct {
 }
 type LogoutResp struct{}
 
+type UserInfo struct {
+	UserId   uint   `json:"user_id"`
+	UserName string `json:"user_name"`
+}
+
 type UserService interface {
 	Register(req RegisterReq) (RegisterResp, error)
 	Login(req LoginReq) (LoginResp, error)
@@ -111,11 +116,9 @@ func (u userService) Login(req LoginReq) (LoginResp, error) {
 
 	token, err := jwt.NewToken(user.ID)
 	if err != nil {
-		err = errors.Wrap(err, "登录失败")
 		return LoginResp{}, err
 	}
 	if addOnlineUser(user.ID) != nil {
-		err = errors.Wrap(err, "登录失败")
 		return LoginResp{}, err
 	}
 	return LoginResp{
@@ -126,16 +129,23 @@ func (u userService) Login(req LoginReq) (LoginResp, error) {
 
 func (u userService) Logout(req LogoutReq) (LogoutResp, error) {
 	if err := rmOnlineUser(req.UserId); err != nil {
-		err = errors.Wrap(err, "登录失败")
 		return LogoutResp{}, err
 	}
 	return LogoutResp{}, nil
 }
 
 func addOnlineUser(userId uint) error {
-	return global.Redis.SetBit(context.Background(), "online_users", int64(userId), 1).Err()
+	err := global.Redis.SetBit(context.Background(), "online_users", int64(userId), 1).Err()
+	if err != nil {
+		err = errors.Wrap(err, "添加在线用户失败")
+	}
+	return err
 }
 
 func rmOnlineUser(userId uint) error {
-	return global.Redis.SetBit(context.Background(), "online_users", int64(userId), 0).Err()
+	err := global.Redis.SetBit(context.Background(), "online_users", int64(userId), 0).Err()
+	if err != nil {
+		err = errors.Wrap(err, "删除在线用户失败")
+	}
+	return err
 }
