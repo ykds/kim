@@ -89,6 +89,13 @@ func (f friendApplicationService) ListApplication(userId uint) ([]*ApplicationIn
 }
 
 func (f friendApplicationService) FriendApply(req FriendApplyReq) (FriendApplyResp, error) {
+	isFriend, err := f.friendDao.IsFriend(req.UserId, req.FriendId)
+	if err != nil {
+		return FriendApplyResp{}, err
+	}
+	if isFriend {
+		return FriendApplyResp{}, errcode.HadBeFriendErr
+	}
 	application, err := f.friendApplicationDao.GetApplication(req.UserId, req.FriendId)
 	if err != nil {
 		return FriendApplyResp{}, err
@@ -106,25 +113,27 @@ func (f friendApplicationService) FriendApply(req FriendApplyReq) (FriendApplyRe
 	if err != nil {
 		return FriendApplyResp{}, err
 	}
-	serverId, err := getUser(req.FriendId)
-	if err != nil {
-		return FriendApplyResp{}, err
-	}
-	notfi := protocol.Notification{
-		ServerId:  serverId,
-		UserId:    req.FriendId,
-		Type:      protocol.NewFriendApplication,
-		Content:   app,
-		Timestamp: time.Now().UnixMilli(),
-	}
-	body, err := json.Marshal(notfi)
-	if err != nil {
-		return FriendApplyResp{}, err
-	}
-	err = global.Channel.PublishMsg(context.Background(), global.NotificationExchangeName, global.NotificationRoutingKey, body)
-	if err != nil {
-		global.Logger.Errorf("投递消息失败, error: %v", err)
-	}
+	go func() {
+		serverId, err := getUser(req.FriendId)
+		if err != nil {
+			return
+		}
+		notfi := protocol.Notification{
+			ServerId:  serverId,
+			UserId:    req.FriendId,
+			Type:      protocol.NewFriendApplication,
+			Content:   app,
+			Timestamp: time.Now().UnixMilli(),
+		}
+		body, err := json.Marshal(notfi)
+		if err != nil {
+			return
+		}
+		err = global.Channel.PublishMsg(context.Background(), global.NotificationExchangeName, global.NotificationRoutingKey, body)
+		if err != nil {
+			global.Logger.Errorf("投递消息失败, error: %v", err)
+		}
+	}()
 	return FriendApplyResp{}, nil
 }
 

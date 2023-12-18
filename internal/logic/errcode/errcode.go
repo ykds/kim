@@ -15,6 +15,7 @@ var (
 	FriendApplyNotFound   = 100007
 	ApplyStatusWrong      = 100008
 	CantHandleApply       = 100009
+	HadBeFriend           = 100010
 )
 
 var (
@@ -28,4 +29,5 @@ var (
 	FriendApplyNotFoundErr   = errors.NewError(FriendApplyNotFound, "好友申请记录不存在")
 	ApplyStatusWrongErr      = errors.NewError(ApplyStatusWrong, "好友申请状态错误")
 	CantHandleApplyErr       = errors.NewError(CantHandleApply, "你不能执行该动作")
+	HadBeFriendErr           = errors.NewError(HadBeFriend, "已经添加好友")
 )

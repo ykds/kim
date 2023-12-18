@@ -1,10 +1,11 @@
 package protocol
 
 const (
-	NewFriendApplication          = 1
-	FriendApplicationStatusChange = NewFriendApplication << 1
-	FriendApplicationNewQuest     = NewFriendApplication << 2
-	FriendApplicationNewAns       = NewFriendApplication << 3
+	NewFriendApplication = iota + 1
+	FriendApplicationStatusChange
+	FriendApplicationNewQuest
+	FriendApplicationNewAns
+	NewMessage
 )
 
 type Notification struct {

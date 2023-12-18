@@ -37,7 +37,7 @@ func (u *UserDao) GetUser(id uint) (*User, error) {
 
 func (u *UserDao) GetUserBatch(id ...uint) ([]*User, error) {
 	user := make([]*User, 0)
-	err := global.Database.Find(user, "id IN ?", id).Error
+	err := global.Database.Find(&user, "id IN ?", id).Error
 	if err != nil {
 		err = errors.Wrap(err, "获取用户失败")
 	}

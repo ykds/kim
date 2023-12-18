@@ -58,13 +58,6 @@ func (s *Server) Consume() {
 	for {
 		select {
 		case msg := <-consume:
-			//message := &logic.Message{}
-			//err := json.Unmarshal(msg.Body, message)
-			//if err != nil {
-			//	Logger.Errorf("消息格式错误, body, %s, err: %v", string(msg.Body), err)
-			//	msg.Reject(false)
-			//	return
-			//}
 			noti := &protocol.Notification{}
 			err = json.Unmarshal(msg.Body, noti)
 			if err != nil {
@@ -87,7 +80,7 @@ func (s *Server) Consume() {
 			_, err = client.PushMessage(context.Background(), &comet.PushMessageReq{
 				Message: &comet.Message{
 					Type:      int32(noti.Type),
-					Content:   ct,
+					Content:   string(ct),
 					UserId:    int32(noti.UserId),
 					Timestamp: noti.Timestamp,
 				},

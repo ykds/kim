@@ -15,8 +15,8 @@ const (
 
 type FriendApplication struct {
 	gorm.Model
-	UserId   uint   `json:"user_id" gorm:"user_id"`
-	FriendId uint   `json:"friend_id" gorm:"friend_id"`
+	UserId   uint   `json:"user_id" gorm:"user_id uniqueIndex:friendshipapp1,priority:1;uniqueIndex:friendshipapp2,priority:2"`
+	FriendId uint   `json:"friend_id" gorm:"friend_id  uniqueIndex:friendshipapp1,priority:2;uniqueIndex:friendshipapp2,priority:1"`
 	Status   int8   `json:"status" gorm:"status"`
 	Desc     string `json:"desc" gorm:"desc"`
 	Question string `json:"ask" gorm:"question"`
@@ -34,7 +34,10 @@ func NewFriendApplicationDao() *FriendApplicationDao {
 }
 
 func (fad *FriendApplicationDao) CreateApplication(app *FriendApplication) error {
-	err := global.Database.Create(app).Error
+	err := global.Database.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_id"}, {Name: "friend_id"}},
+		DoNothing: true,
+	}).Create(app).Error
 	if err != nil {
 		err = errors.Wrap(err, "创建好友申请失败")
 	}
@@ -79,7 +82,7 @@ func (fad *FriendApplicationDao) UpdateApplication(id uint, update map[string]in
 }
 
 func (fad *FriendApplicationDao) UpdateApplicationTx(tx *gorm.DB, id uint, update map[string]interface{}) error {
-	err := tx.Where("id=?", id).Updates(update).Error
+	err := tx.Model(&FriendApplication{}).Where("id=?", id).Updates(update).Error
 	if err != nil {
 		err = errors.Wrap(err, "更新好友申请失败")
 	}
@@ -123,9 +126,19 @@ func (fd *FriendDao) DeleteFriend(userId uint, friendId uint) error {
 
 func (fd *FriendDao) ListFriends(userId uint) ([]*Friend, error) {
 	friends := make([]*Friend, 0)
-	err := global.Database.Find(friends, "user_id=?", userId).Error
+	err := global.Database.Find(&friends, "user_id=?", userId).Error
 	if err != nil {
-		err = errors.Wrap(err, "")
+		err = errors.Wrap(err, "查询好友列表失败")
 	}
 	return friends, err
+}
+
+func (fd *FriendDao) IsFriend(userId1, userId2 uint) (bool, error) {
+	var count int64
+	err := global.Database.Model(&Friend{}).Where("(user_id=? AND friend_id=?) OR (friend_id=? AND user_id=?)", userId1, userId2, userId1, userId2).
+		Count(&count).Error
+	if err != nil {
+		err = errors.Wrap(err, "查询好友关系失败")
+	}
+	return count > 0, err
 }

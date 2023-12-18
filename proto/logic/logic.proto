@@ -29,10 +29,3 @@ service LogicService {
   rpc HeartBeat(HeartBeatReq) returns (HeartBeatResp);
   rpc DisConnect(DisConnectReq) returns (DisConnectResp);
 }
-
-
-message Message {
-  int32 type = 1;
-  bytes content = 2;
-  int64 timestamp = 3;
-}
