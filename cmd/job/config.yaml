@@ -1,0 +1,23 @@
+log:
+  lumberjack:
+    filename: ./logs/job_err.log
+    max_age: 7
+    max_size: 10
+    max_backups: 5
+    compress: false
+
+server:
+  id: 1
+  queue: "notification_queue"
+
+etcd:
+  urls:
+    - "127.0.0.1:2379"
+  endpoint: "/kim"
+
+rabbitmq:
+  user: guest
+  password: guest
+  host: 127.0.0.1
+  port: 5672
+  vhost: "/"

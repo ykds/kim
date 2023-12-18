@@ -6,7 +6,8 @@ import (
 	"kim/internal/logic/dao"
 	"kim/internal/logic/errcode"
 	"kim/internal/logic/global"
-	"kim/internal/logic/protocol"
+	"kim/internal/protocol"
+	"time"
 )
 
 type FriendApplyReq struct {
@@ -105,16 +106,25 @@ func (f friendApplicationService) FriendApply(req FriendApplyReq) (FriendApplyRe
 	if err != nil {
 		return FriendApplyResp{}, err
 	}
+	serverId, err := getUser(req.FriendId)
+	if err != nil {
+		return FriendApplyResp{}, err
+	}
 	notfi := protocol.Notification{
-		UserId:  req.FriendId,
-		Type:    protocol.NewFriendApplication,
-		Content: app,
+		ServerId:  serverId,
+		UserId:    req.FriendId,
+		Type:      protocol.NewFriendApplication,
+		Content:   app,
+		Timestamp: time.Now().UnixMilli(),
 	}
 	body, err := json.Marshal(notfi)
 	if err != nil {
 		return FriendApplyResp{}, err
 	}
-	_ = global.Channel.PublishMsg(context.Background(), global.NotificationExchangeName, global.NotificationRoutingKey, body)
+	err = global.Channel.PublishMsg(context.Background(), global.NotificationExchangeName, global.NotificationRoutingKey, body)
+	if err != nil {
+		global.Logger.Errorf("投递消息失败, error: %v", err)
+	}
 	return FriendApplyResp{}, nil
 }
 
@@ -152,10 +162,16 @@ func (f friendApplicationService) UpdateFriendApplicationStatus(userId uint, req
 		return UpdateApplyResp{}, errcode.ApplyStatusWrongErr
 	}
 	go func() {
+		serverId, err := getUser(application.UserId)
+		if err != nil {
+			return
+		}
 		notfi := protocol.Notification{
-			UserId:  application.UserId,
-			Type:    protocol.FriendApplicationStatusChange,
-			Content: map[string]interface{}{"id": req.Id, "status": req.Status},
+			ServerId:  serverId,
+			UserId:    application.UserId,
+			Type:      protocol.FriendApplicationStatusChange,
+			Content:   map[string]interface{}{"id": req.Id, "status": req.Status},
+			Timestamp: time.Now().UnixMilli(),
 		}
 		body, err := json.Marshal(notfi)
 		if err != nil {
@@ -186,10 +202,16 @@ func (f friendApplicationService) ApplicationQuest(userId uint, req ApplicationQ
 		return ApplicationQuestResp{}, err
 	}
 	go func() {
+		serverId, err := getUser(application.UserId)
+		if err != nil {
+			return
+		}
 		notfi := protocol.Notification{
-			UserId:  application.UserId,
-			Type:    protocol.FriendApplicationStatusChange,
-			Content: map[string]interface{}{"id": req.Id, "question": req.Question},
+			ServerId:  serverId,
+			UserId:    application.UserId,
+			Type:      protocol.FriendApplicationStatusChange,
+			Content:   map[string]interface{}{"id": req.Id, "question": req.Question},
+			Timestamp: time.Now().UnixMilli(),
 		}
 		body, err := json.Marshal(notfi)
 		if err != nil {
@@ -220,10 +242,16 @@ func (f friendApplicationService) ApplicationAns(userId uint, req ApplicationAns
 		return ApplicationAnsResp{}, err
 	}
 	go func() {
+		serverId, err := getUser(application.FriendId)
+		if err != nil {
+			return
+		}
 		notfi := protocol.Notification{
-			UserId:  application.FriendId,
-			Type:    protocol.FriendApplicationStatusChange,
-			Content: map[string]interface{}{"id": req.Id, "answer": req.Answer},
+			ServerId:  serverId,
+			UserId:    application.FriendId,
+			Type:      protocol.FriendApplicationStatusChange,
+			Content:   map[string]interface{}{"id": req.Id, "answer": req.Answer},
+			Timestamp: time.Now().UnixMilli(),
 		}
 		body, err := json.Marshal(notfi)
 		if err != nil {

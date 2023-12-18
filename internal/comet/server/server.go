@@ -140,10 +140,16 @@ func (s *Server) handleWebsocket(ctx *gin.Context) {
 		for {
 			select {
 			case <-ch.HeartBeat():
-				global.Logger.Errorf("uid: %d, 心跳超时，连接断开", userId)
-				ch.Close()
-				s.logicClient.DisConnect(context.Background(), &logic.DisConnectReq{UserId: int32(userId)})
-				return
+				_, err = s.logicClient.HeartBeat(ctx, &logic.HeartBeatReq{ServerId: s.id, UserId: int32(userId)})
+				if err != nil {
+					global.Logger.Errorf("发送心跳失败, err: %v", err)
+					ch.Close()
+					return
+				}
+				//global.Logger.Errorf("uid: %d, 心跳超时，连接断开", userId)
+				//ch.Close()
+				//s.logicClient.DisConnect(context.Background(), &logic.DisConnectReq{UserId: int32(userId)})
+				//return
 			case <-ch.Done():
 				return
 			}
@@ -157,8 +163,4 @@ func (s *Server) GetBucket(userId uint) *Bucket {
 
 func (s *Server) GetId() int32 {
 	return s.id
-}
-
-func (s *Server) Addr() string {
-	return fmt.Sprintf("%s:%s", s.cfg.Host, s.cfg.Port)
 }

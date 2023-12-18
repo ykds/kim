@@ -163,3 +163,11 @@ func rmOnlineUser(userId uint) error {
 	}
 	return err
 }
+
+func getUser(userId uint) (int32, error) {
+	serverId, err := global.Redis.Get(context.Background(), fmt.Sprintf("online_users_%d", userId)).Int64()
+	if err != nil {
+		return 0, err
+	}
+	return int32(serverId), nil
+}

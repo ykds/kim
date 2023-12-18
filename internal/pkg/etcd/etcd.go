@@ -29,6 +29,7 @@ func NewEtcd(cfg Config) *Client {
 	}
 	return &Client{manager: manager, cli: cli, cfg: cfg, registerMap: make(map[string]context.CancelFunc)}
 }
+
 func (c *Client) put(key string, addr string, md map[string]interface{}, lease clientv3.Lease) (clientv3.Lease, clientv3.LeaseID, error) {
 	if lease == nil {
 		lease = clientv3.NewLease(c.cli)
@@ -74,4 +75,8 @@ func (c *Client) UnRegister(key string) {
 		delete(c.registerMap, key)
 	}
 	_, _ = c.cli.Delete(context.Background(), key)
+}
+
+func (c *Client) Watch() (endpoints.WatchChannel, error) {
+	return c.manager.NewWatchChannel(context.Background())
 }

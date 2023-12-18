@@ -22,7 +22,7 @@ func main() {
 
 	etcdManager := etcd.NewEtcd(global.Conf.Etcd)
 	key := fmt.Sprintf("/comet_%d", srv.GetId())
-	err := etcdManager.Register(key, srv.Addr(), map[string]interface{}{"server_id": srv.GetId()})
+	err := etcdManager.Register(key, fmt.Sprintf("%s:%s", global.Conf.GrpcServer.Host, global.Conf.GrpcServer.Port), map[string]interface{}{"server_id": srv.GetId()})
 	if err != nil {
 		panic(err)
 	}
