@@ -1,0 +1,21 @@
+syntax="proto3";
+
+package comet;
+
+option go_package="github.com/ykds/kim/proto/comet;comet";
+
+message Message {
+  int32 type = 1;
+  bytes content = 2;
+  int64 timestamp = 3;
+  int32 user_id = 4;
+}
+
+message PushMessageReq{
+  Message message = 1;
+}
+message PushMessageResp{}
+
+service Comet {
+  rpc PushMessage(PushMessageReq) returns (PushMessageResp);
+}

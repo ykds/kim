@@ -10,6 +10,7 @@ import (
 	"kim/internal/logic/global"
 	"kim/internal/pkg/errors"
 	"kim/internal/pkg/jwt"
+	"time"
 )
 
 var _ UserService = userService{}
@@ -46,10 +47,26 @@ type UserService interface {
 	Register(req RegisterReq) (RegisterResp, error)
 	Login(req LoginReq) (LoginResp, error)
 	Logout(req LogoutReq) (LogoutResp, error)
+	Auth(token string) (uint, error)
+	HeartBeat(serverId int32, userId uint) error
+	DisConnect(userId uint) error
 }
 
 type userService struct {
 	userDao *dao.UserDao
+}
+
+func (u userService) DisConnect(userId uint) error {
+	return rmOnlineUser(userId)
+}
+
+func (u userService) HeartBeat(serverId int32, userId uint) error {
+	global.Logger.Infof("用户：%d 心跳", userId)
+	return addOnlineUser(serverId, userId)
+}
+
+func (u userService) Auth(token string) (uint, error) {
+	return jwt.ParseToken(token)
 }
 
 func NewUserService(userDao *dao.UserDao) UserService {
@@ -118,9 +135,6 @@ func (u userService) Login(req LoginReq) (LoginResp, error) {
 	if err != nil {
 		return LoginResp{}, err
 	}
-	if addOnlineUser(user.ID) != nil {
-		return LoginResp{}, err
-	}
 	return LoginResp{
 		UserId: user.ID,
 		Token:  token,
@@ -134,8 +148,8 @@ func (u userService) Logout(req LogoutReq) (LogoutResp, error) {
 	return LogoutResp{}, nil
 }
 
-func addOnlineUser(userId uint) error {
-	err := global.Redis.SetBit(context.Background(), "online_users", int64(userId), 1).Err()
+func addOnlineUser(serverId int32, userId uint) error {
+	err := global.Redis.SetEx(context.Background(), fmt.Sprintf("online_users_%d", userId), serverId, 30*time.Second).Err()
 	if err != nil {
 		err = errors.Wrap(err, "添加在线用户失败")
 	}
@@ -143,7 +157,7 @@ func addOnlineUser(userId uint) error {
 }
 
 func rmOnlineUser(userId uint) error {
-	err := global.Redis.SetBit(context.Background(), "online_users", int64(userId), 0).Err()
+	err := global.Redis.Del(context.Background(), fmt.Sprintf("online_users_%d", userId)).Err()
 	if err != nil {
 		err = errors.Wrap(err, "删除在线用户失败")
 	}

@@ -1,0 +1,38 @@
+syntax="proto3";
+
+package logic;
+
+option go_package="github.com/ykds/kim/proto/logic;logic";
+
+message AuthReq {
+  string token = 1;
+}
+
+message AuthResp {
+  int32 user_id = 1;
+}
+
+message HeartBeatReq {
+  int32 server_id = 1;
+  int32 user_id = 2;
+}
+message HeartBeatResp {}
+
+
+message DisConnectReq {
+  int32 user_id = 1;
+}
+message DisConnectResp {}
+
+service LogicService {
+  rpc Auth(AuthReq) returns (AuthResp);
+  rpc HeartBeat(HeartBeatReq) returns (HeartBeatResp);
+  rpc DisConnect(DisConnectReq) returns (DisConnectResp);
+}
+
+
+message Message {
+  int32 type = 1;
+  bytes content = 2;
+  int64 timestamp = 3;
+}

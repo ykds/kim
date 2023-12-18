@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"kim/internal/logic/api"
 	"kim/internal/logic/global"
+	"kim/internal/logic/grpc"
 	"kim/internal/pkg/log"
 	"kim/internal/pkg/mq"
 	"kim/internal/pkg/mysql"
@@ -27,15 +28,16 @@ func main() {
 	go func() {
 		httpServer.Run()
 	}()
+	grpcServer := grpc.NewGrpcServer(global.Conf.GrpcServer, api.GetService())
 
 	global.Logger.Infof("http server started")
-
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 	for {
 		select {
 		case <-c:
 			httpServer.Stop()
+			grpcServer.GracefulStop()
 			global.Logger.Infof("http server stop")
 			return
 		}

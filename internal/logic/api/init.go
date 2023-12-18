@@ -19,3 +19,7 @@ func InitRouter(r *gin.Engine) {
 	registerUserRouter(r)
 	registerFriendRouter(r)
 }
+
+func GetService() *service.Service {
+	return services
+}

@@ -1,0 +1,25 @@
+log:
+  lumberjack:
+    filename: ./logs/comet_err.log
+    max_age: 7
+    max_size: 10
+    max_backups: 5
+    compress: false
+
+server:
+  id: 1
+  host: 127.0.0.1
+  port: 9000
+  logic_host: 127.0.0.1
+  logic_port: 8001
+  bucket_num: 10
+  heart_beat_interval: 20
+
+grpc_server:
+  host: 127.0.0.1
+  port: 9001
+
+etcd:
+  urls:
+    - "127.0.0.1:2379"
+  endpoint: "/kim"
